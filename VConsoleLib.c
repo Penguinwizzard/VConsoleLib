@@ -71,10 +71,9 @@ int VCReadChunk(VConConn* conn) {
 		fprintf(stderr,"Socket Read Error (%i)\n",n);
 		return -1;
 	}
-	// Yeah, we don't know what it is - but we might as well convert it
-	header.unknown = ntohl(header.unknown);
+	header.version = ntohl(header.version);
 	header.length = ntohs(header.length);
-	header.padding = ntohs(header.padding);
+	header.pipe_handle = ntohs(header.pipe_handle);
 	// Allocate space for the incoming chunk
 	char rawchunk[header.length - 12];
 	int p = dread(conn, rawchunk, header.length - 12);
@@ -128,8 +127,9 @@ int VCReadChunk(VConConn* conn) {
 		temp = *((uint32_t*)(&(chunk->rangemax)));
 		temp = ntohl(temp);
 		chunk->rangemax = *((float*)(&(temp)));
+		chunk->padding = ntohs(chunk->padding);
 		// print it all out
-		printf("%.8x %.8x %f %f %s\n",chunk->unknown,chunk->flags,chunk->rangemin,chunk->rangemax,chunk->variable_name);
+		printf("%.8x %.8x %.4x %f %f %s\n",chunk->unknown,chunk->flags,chunk->padding,chunk->rangemin,chunk->rangemax,chunk->variable_name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CFGV",4)==0) {
 		LOADAS(VConChunkCfg);
@@ -144,9 +144,9 @@ int VCReadChunk(VConConn* conn) {
 void VCExecute(VConConn* conn, char* command) {
 	VConChunk header;
 	header.type[0] = 'C'; header.type[1] = 'M'; header.type[2] = 'N'; header.type[3] = 'D';
-	header.unknown = htonl(0x00d20000);
+	header.version = htonl(0x00d20000);
 	header.length = htons(strlen(command)+12+1); //add header length and null terminator
-	header.padding = (short)0;
+	header.pipe_handle = (short)0;
 	write(conn->socketfd, &header, sizeof(header));
 	write(conn->socketfd, command, strlen(command)+1);
 	return;
