@@ -90,9 +90,9 @@ int VCReadChunk(VConConn* conn) {
 		LOADAS(VConChunkAddonInfo);
 	} else if(strncmp(header.type,"ADON",4)==0) {
 		LOADAS(VConChunkAddonIdentifier);
-		chunk->unknown = ntohl(chunk->unknown);
+		chunk->unknown = ntohs(chunk->unknown);
 		chunk->namelen = ntohs(chunk->namelen);
-		printf("%i %hi\n",sizeof(VConChunkAddonIdentifier),chunk->namelen);
+		printf("%hi %hi\n",sizeof(VConChunkAddonIdentifier),chunk->namelen);
 		printf("%.*s\n",chunk->namelen,chunk->name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CHAN",4)==0) {

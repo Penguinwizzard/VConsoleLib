@@ -35,7 +35,7 @@ typedef struct __attribute__((__packed__)) { // 58-byte struct
 } VConChannel;
 
 typedef struct __attribute__((__packed__)) { //ADON
-	uint32_t unknown; //nbo
+	uint16_t unknown; //nbo
 	uint16_t namelen; //nbo
 	char name[1]; // variable-length
 } VConChunkAddonIdentifier;
