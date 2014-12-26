@@ -26,7 +26,11 @@ typedef struct __attribute__((__packed__)) {
 
 typedef struct __attribute__((__packed__)) { // 58-byte struct
 	uint32_t channel_id;
-	uint8_t header[20];
+	uint32_t unknown1;
+	uint32_t unknown2;
+	uint32_t verbosity_default;
+	uint32_t verbosity_current;
+	uint32_t text_RGBA_override;
 	char name[34];
 } VConChannel;
 

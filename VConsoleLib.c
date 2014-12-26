@@ -100,12 +100,18 @@ int VCReadChunk(VConConn* conn) {
 		chunk->numchannels = ntohs(chunk->numchannels);
 		printf("%hi channels:\n", chunk->numchannels);
 		for(int i=0;i<chunk->numchannels;i++) {
-			printf("%s\n",chunk->channels[i].name);
+			chunk->channels[i].channel_id = ntohl(chunk->channels[i].channel_id);
+			chunk->channels[i].unknown1 = ntohl(chunk->channels[i].unknown1);
+			chunk->channels[i].unknown2 = ntohl(chunk->channels[i].unknown2);
+			chunk->channels[i].verbosity_default = ntohl(chunk->channels[i].verbosity_default);
+			chunk->channels[i].verbosity_current = ntohl(chunk->channels[i].verbosity_current);
+			chunk->channels[i].text_RGBA_override = ntohl(chunk->channels[i].text_RGBA_override);
+			printf("%.8x (%i %i %i %i %.8x): %s\n",chunk->channels[i].channel_id,chunk->channels[i].unknown1,chunk->channels[i].unknown2,chunk->channels[i].verbosity_default,chunk->channels[i].verbosity_current,chunk->channels[i].text_RGBA_override,chunk->channels[i].name);
 		}
 	} else if(strncmp(header.type,"PRNT",4)==0) {
 		LOADAS(VConChunkPrint);
-		printf("PRINTING\n");
-		printf("%.*s\n",(header.length-28)-1,chunk->message);
+		chunk->channel_id=ntohl(chunk->channel_id);
+		printf("%.8x : %.*s\n",chunk->channel_id,(header.length-28)-1,chunk->message);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CVAR",4)==0) {
 		LOADAS(VConChunkCVar);
