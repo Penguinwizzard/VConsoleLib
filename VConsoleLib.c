@@ -29,9 +29,16 @@ VConConn* VCConnect(char* hostname, int port) {
 		return NULL;
 	}
 	VConConn *ret = (VConConn*)calloc(1,sizeof(VConConn));
-	ret->server_address.sin_family = AF_INET;
-	memcpy((void*)&(ret->server_address.sin_addr.s_addr), (void*)(server->h_addr), server->h_length);
-	ret->server_address.sin_port = htons(port);
+	if(ret == NULL) {
+		return NULL;
+	}
+	ret->server_address = (struct sockaddr_in *)calloc(1,sizeof(struct sockaddr_in));
+	if(ret->server_address == NULL) {
+		return NULL;
+	}
+	ret->server_address->sin_family = AF_INET;
+	memcpy((void*)&(ret->server_address->sin_addr.s_addr), (void*)(server->h_addr), server->h_length);
+	ret->server_address->sin_port = htons(port);
 
 	ret->socketfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(ret->socketfd < 0) {
@@ -39,7 +46,7 @@ VConConn* VCConnect(char* hostname, int port) {
 		free(ret);
 		return NULL;
 	}
-	if(connect(ret->socketfd, (struct sockaddr *) &(ret->server_address), sizeof(ret->server_address)) < 0) {
+	if(connect(ret->socketfd, (struct sockaddr *) (ret->server_address), sizeof(ret->server_address)) < 0) {
 		fprintf(stderr,"Failure to connect\n");
 		close(ret->socketfd);
 		free(ret);
@@ -129,6 +136,8 @@ int VCReadChunk(VConConn* conn) {
 		chunk->rangemax = *((float*)(&(temp)));
 		chunk->padding = ntohs(chunk->padding);
 		// print it all out
+		if(chunk->flags & (1<<1))
+			printf("ALERT\n");
 		printf("%.8x %.8x %.4x %f %f %s\n",chunk->unknown,chunk->flags,chunk->padding,chunk->rangemin,chunk->rangemax,chunk->variable_name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CFGV",4)==0) {
