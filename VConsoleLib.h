@@ -135,6 +135,6 @@ typedef struct __attribute__((__packed__)) {
 } VConChunkPPCR;
 
 VConConn* VCConnect(char* hostname, int port);
-parsedchunk* VCReadChunk(VConConn* conn);
+int VCReadChunk(VConConn* conn, char** outputbuf);
 void VCExecute(VConConn* conn, char* command);
 void VCDestroy(VConConn* conn);

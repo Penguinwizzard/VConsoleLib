@@ -63,43 +63,53 @@ VConConn* VCConnect(char* hostname, int port) {
 }
 
 //#define LOADAS(x) fprintf(stderr,"Reading in a " #x "\n"); x chnk; int p = dread(conn, &chnk, sizeof(x)); while(p == EAGAIN || p == EWOULDBLOCK) { fprintf(stderr,"Info: waiting on completion of " #x " chunk\n"); sleep(1); p = dread(conn, &chnk, sizeof(x));} if(p < sizeof(x)) { fprintf(stderr,"Couldn't get whole " #x "\n"); return false;}
-#define LOADAS(x) fprintf(stderr,"Interpreting a " #x "\n"); x *chunk = (x*)&(ret->body);
+#define LOADAS(x) fprintf(stderr,"Interpreting a " #x "\n"); x *chunk = (x*)&(((parsedchunk*)*outputbuf)->body);
 
-// returns -1 on error, positive on success, NULL if no data ready
-parsedchunk* VCReadChunk(VConConn* conn) {
+// returns -1 on error, positive on success, 0 if no data ready
+// if positive, *outputbuf is now a pointer to a parsedchunk.
+// otherwise, it is NULL.
+int VCReadChunk(VConConn* conn, char** outputbuf) {
+	if(outputbuf == NULL) {
+		fprintf(stderr,"Warning: outputbuf is null!\n");
+		return -1;
+	}
 	if(conn == NULL) {
 		fprintf(stderr,"Warning: Tried to read from non-existant VConsole Connection!\n");
-		return (parsedchunk*)-1;
+		*outputbuf = NULL;
+		return -1;
 	}
 	VConChunk header;
 	int n = dread(conn, &header, sizeof(header));
 	if(n < (int)sizeof(VConChunk)) {
+		*outputbuf = NULL;
 		if(errno == EAGAIN || errno == EWOULDBLOCK) {
-			return NULL;
+			return 0;
 		}
 		fprintf(stderr,"Socket Read Error (%i)\n",n);
-		return (parsedchunk*)-1;
+		return -1;
 	}
 	header.version = ntohl(header.version);
 	header.length = ntohs(header.length);
 	header.pipe_handle = ntohs(header.pipe_handle);
 	// Allocate space for the incoming chunk
-	parsedchunk* ret = (parsedchunk*)malloc(header.length);
-	if(ret == NULL) {
+	(*outputbuf) = (char*)malloc(header.length);
+	if(*outputbuf == NULL) {
 		fprintf(stderr,"Error: Malloc failure while parsing chunk!\n");
-		return (parsedchunk*)-1;
+		return -1;
 	}
 	// Read in the incoming chunk
-	int p = dread(conn, &(ret->body), header.length - 12);
+	int p = dread(conn, &(((parsedchunk*)*outputbuf)->body), header.length - 12);
 	if(p < header.length - 12) {
+		free(*outputbuf);
+		*outputbuf = NULL;
 		if(errno == EAGAIN || errno == EWOULDBLOCK) {
-			return NULL;
+			return 0;
 		}
 		fprintf(stderr,"Socket Read Error (%i)\n",n);
-		return (parsedchunk*)-1;
+		return -1;
 	}
 	// If we managed to read in the incoming chunk, copy the header
-	memcpy(&(ret->header),&header,sizeof(VConChunk));
+	memcpy(&(((parsedchunk*)*outputbuf)->header),&header,sizeof(VConChunk));
 	// Debug
 	printf("%c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 	if(strncmp(header.type,"AINF",4)==0) {
@@ -154,9 +164,11 @@ parsedchunk* VCReadChunk(VConConn* conn) {
 		LOADAS(VConChunkPPCR);
 	} else {
 		fprintf(stderr,"Unknown chunk type: %c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
-		return (parsedchunk*)-1;
+		free(*outputbuf);
+		*outputbuf = NULL;
+		return -1;
 	}
-	return ret;
+	return 1;
 }
 void VCExecute(VConConn* conn, char* command) {
 	VConChunk header;
