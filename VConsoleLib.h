@@ -16,6 +16,11 @@ typedef struct {
 	FILE* dumpfile; //Used with the DEBUG flag set
 } VConConn;
 
+typedef struct {
+	VConConn header;
+	uint8_t body[0];
+} parsedchunk;
+
 // Generic chunk
 typedef struct __attribute__((__packed__)) {
 	char type[4];
@@ -130,6 +135,6 @@ typedef struct __attribute__((__packed__)) {
 } VConChunkPPCR;
 
 VConConn* VCConnect(char* hostname, int port);
-int VCReadChunk(VConConn* conn);
+parsedchunk* VCReadChunk(VConConn* conn);
 void VCExecute(VConConn* conn, char* command);
 void VCDestroy(VConConn* conn);
