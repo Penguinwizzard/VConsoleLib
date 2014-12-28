@@ -30,10 +30,12 @@ VConConn* VCConnect(char* hostname, int port) {
 	}
 	VConConn *ret = (VConConn*)calloc(1,sizeof(VConConn));
 	if(ret == NULL) {
+		fprintf(stderr,"calloc failure\n");
 		return NULL;
 	}
 	ret->server_address = (struct sockaddr_in *)calloc(1,sizeof(struct sockaddr_in));
 	if(ret->server_address == NULL) {
+		fprintf(stderr,"calloc failure\n");
 		return NULL;
 	}
 	ret->server_address->sin_family = AF_INET;
@@ -46,7 +48,7 @@ VConConn* VCConnect(char* hostname, int port) {
 		free(ret);
 		return NULL;
 	}
-	if(connect(ret->socketfd, (struct sockaddr *) (ret->server_address), sizeof(ret->server_address)) < 0) {
+	if(connect(ret->socketfd, (struct sockaddr *) (ret->server_address), sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr,"Failure to connect\n");
 		close(ret->socketfd);
 		free(ret);
