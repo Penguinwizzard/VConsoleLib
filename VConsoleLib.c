@@ -175,6 +175,7 @@ void VCDestroy(VConConn* conn) {
 	fclose(conn->dumpfile);
 #endif
 	close(conn->socketfd);
+	free(conn->server_address);
 	free(conn);
 	return;
 }
