@@ -1,4 +1,5 @@
 #include"VConsoleLib.h"
+#include<unistd.h>
 
 void main() {
 	VConConn* vc = VCConnect("localhost", 29000);

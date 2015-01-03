@@ -2,7 +2,7 @@
 #define DEBUG 1
 
 int dread(VConConn* conn, void *dest, size_t size) {
-	int ret = read(conn->socketfd, dest, size);
+	int ret = recv(conn->socketfd, dest, size, 0);
 #if DEBUG
 	if(ret > 0) {
 		// Write all traffic from this VConsoleConnection to a dump file; helps with debugging
@@ -50,7 +50,7 @@ VConConn* VCConnect(char* hostname, int port) {
 	}
 	if(connect(ret->socketfd, (struct sockaddr *) (ret->server_address), sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr,"Failure to connect\n");
-		close(ret->socketfd);
+		shutdown(ret->socketfd, SHUT_RDWR);
 		free(ret);
 		return NULL;
 	}
@@ -176,8 +176,8 @@ void VCExecute(VConConn* conn, char* command) {
 	header.version = htonl(0x00d20000);
 	header.length = htons(strlen(command)+12+1); //add header length and null terminator
 	header.pipe_handle = (short)0;
-	write(conn->socketfd, &header, sizeof(header));
-	write(conn->socketfd, command, strlen(command)+1);
+	send(conn->socketfd, &header, sizeof(header), 0);
+	send(conn->socketfd, command, strlen(command)+1, 0);
 	return;
 }
 void VCDestroy(VConConn* conn) {
@@ -188,7 +188,7 @@ void VCDestroy(VConConn* conn) {
 #if DEBUG
 	fclose(conn->dumpfile);
 #endif
-	close(conn->socketfd);
+	shutdown(conn->socketfd, SHUT_RDWR);
 	free(conn->server_address);
 	free(conn);
 	return;
