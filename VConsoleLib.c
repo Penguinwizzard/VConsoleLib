@@ -54,8 +54,14 @@ VConConn* VCConnect(char* hostname, int port) {
 		free(ret);
 		return NULL;
 	}
+#ifdef WIN32
+	unsigned long iMode = 1;
+	ioctlsocket(ret->socketfd, FIONBIO, &iMode);
+#else
 	int flags = fcntl(ret->socketfd, F_GETFL, 0);
 	fcntl(ret->socketfd, F_SETFL, flags | O_NONBLOCK);
+#endif
+
 #if DEBUG
 	ret->dumpfile = fopen("dump1.bin","w");
 #endif

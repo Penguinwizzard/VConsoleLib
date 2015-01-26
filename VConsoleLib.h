@@ -2,9 +2,16 @@
 #include<stdlib.h>
 #include<string.h>
 #include<sys/types.h>
+#ifdef WIN32
+#include<WinSock2.h>
+#include<stdint.h>
+
+#define SHUT_RDWR SD_BOTH
+#else
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<netdb.h>
+#endif
 #include<stdbool.h>
 #include<errno.h>
 #include<fcntl.h>
@@ -21,14 +28,25 @@ typedef struct {
 } parsedchunk;
 
 // Generic chunk
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
 typedef struct __attribute__((__packed__)) {
+#endif
 	char type[4];
 	uint32_t version; // always 0x00d20000?
 	uint16_t length; // includes header length
 	uint16_t pipe_handle; // always 0x0000?
 } VConChunk;
 
-typedef struct __attribute__((__packed__)) { // 58-byte struct
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
+	// 58-byte struct
 	uint32_t channel_id;
 	uint32_t unknown1; // only seen to be 0, 1, or 2
 	uint32_t unknown2; // only seen to be 0, 1, 2, or 8
@@ -38,13 +56,25 @@ typedef struct __attribute__((__packed__)) { // 58-byte struct
 	char name[34];
 } VConChannel;
 
-typedef struct __attribute__((__packed__)) { //ADON
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
+	//ADON
 	uint16_t unknown; //nbo
 	uint16_t namelen; //nbo
 	char name[1]; // variable-length
 } VConChunkAddonIdentifier;
 
-typedef struct __attribute__((__packed__)) { //AINF
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
+	//AINF
 	uint32_t unknown1;
 	uint32_t unknown2;
 	uint32_t unknown3;
@@ -67,12 +97,24 @@ typedef struct __attribute__((__packed__)) { //AINF
 	uint8_t padding;
 } VConChunkAddonInfo;
 
-typedef struct __attribute__((__packed__)) { //CHAN
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
+	//CHAN
 	uint16_t numchannels; //nbo
 	VConChannel channels[1]; //is actually many, just using this notation
 } VConChunkChannelsHeader;
 
-typedef struct __attribute__((__packed__)) { //PRNT
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
+typedef struct __attribute__((__packed__)) {
+#endif
+	//PRNT
 	uint32_t channel_id; //What channel to print the message on
 	uint8_t unknown[24];
 	uint8_t message[1]; // variable-length
@@ -114,7 +156,12 @@ typedef struct __attribute__((__packed__)) { //PRNT
 #define VCCVAR_FLAG_DEVELP 0x00000002 /* icvar+: Hidden in released products. Flag removed automatically if ALLOW_DEVELOPMENT_CVARS is defined. */
 #define VCCVAR_FLAG_UNREG  0x00000001 /* icvar?: If this flag is set, don't add to linked list, etc */
 
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
 typedef struct __attribute__((__packed__)) {
+#endif
 	char variable_name[64];
 	uint32_t unknown;
 	uint32_t flags; //see VCCVAR_FLAG_*
@@ -123,11 +170,21 @@ typedef struct __attribute__((__packed__)) {
 	uint8_t padding;
 } VConChunkCVar;
 
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
 typedef struct __attribute__((__packed__)) {
+#endif
 	uint8_t unknown[129];
 } VConChunkCfg;
 
+#ifdef WIN32
+#pragma pack(1)
+typedef struct {
+#else
 typedef struct __attribute__((__packed__)) {
+#endif
 	uint8_t unknown[14];
 	uint16_t messagelen;
 	char message[21];

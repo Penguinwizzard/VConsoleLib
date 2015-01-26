@@ -1,5 +1,10 @@
 #include"VConsoleLib.h"
+#ifdef WIN32
+#include<Windows.h>
+#define sleep(t) Sleep(1000*(t))
+#else
 #include<unistd.h>
+#endif
 
 void main() {
 	VConConn* vc = VCConnect("localhost", 29000);
