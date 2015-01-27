@@ -7,7 +7,7 @@
 #endif
 
 void main() {
-	VConConn* vc = VCConnect("localhost", 29000);
+	VConConn* vc = VCConnect("127.0.0.1", 29000);
 	if(vc == NULL) {
 		fprintf(stderr,"Error: Failure to connect to VConsole port\n");
 		return;
