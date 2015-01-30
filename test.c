@@ -6,11 +6,11 @@
 #include<unistd.h>
 #endif
 
-void main() {
-	VConConn* vc = VCConnect("127.0.0.1", 29000);
+int main() {
+	VConConn* vc = VCConnect("127.0.0.1", "29000");
 	if(vc == NULL) {
 		fprintf(stderr,"Error: Failure to connect to VConsole port\n");
-		return;
+		return 1;
 	}
 	sleep(1);
 	parsedchunk* pc;
@@ -30,4 +30,5 @@ void main() {
 			free(pc);
 	}
 	VCDestroy(vc);
+	return 0;
 }

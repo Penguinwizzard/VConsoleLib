@@ -18,8 +18,11 @@
 
 typedef struct {
 	int socketfd;
-	struct sockaddr_in *server_address;
+	socklen_t sockaddrlen;
+	struct sockaddr server_address;
+#if DEBUG
 	FILE* dumpfile; //Used with the DEBUG flag set
+#endif
 } VConConn;
 
 typedef struct {
@@ -190,7 +193,7 @@ typedef struct __attribute__((__packed__)) {
 	char message[21];
 } VConChunkPPCR;
 
-VConConn* VCConnect(char* hostname, int port);
+VConConn* VCConnect(char* hostname, char* port);
 int VCReadChunk(VConConn* conn, char** outputbuf);
 void VCExecute(VConConn* conn, char* command);
 void VCDestroy(VConConn* conn);

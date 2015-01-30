@@ -1,4 +1,4 @@
-CFLAGS= -c -std=c99
+CFLAGS= -c -std=c99 -Wall
 CC=gcc
 
 all: test dump

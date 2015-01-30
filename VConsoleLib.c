@@ -1,5 +1,6 @@
-#include "VConsoleLib.h"
+// Enable debug code
 #define DEBUG 1
+#include "VConsoleLib.h"
 
 int dread(VConConn* conn, void *dest, size_t size) {
 	int ret = recv(conn->socketfd, dest, size, 0);
@@ -13,10 +14,10 @@ int dread(VConConn* conn, void *dest, size_t size) {
 	return ret;
 }
 
-VConConn* VCConnect(char* hostname, int port) {
-	if(port == 0) {
+VConConn* VCConnect(char* hostname, char* port) {
+	if(port == NULL) {
 		// Default VConConn port
-		port = 29000;
+		port = "29000";
 	}
 	if(hostname == NULL) {
 		fprintf(stderr,"Attempted to connect to NULL hostname!\n");
@@ -33,14 +34,14 @@ VConConn* VCConnect(char* hostname, int port) {
 		fprintf(stderr,"calloc failure\n");
 		return NULL;
 	}
-	ret->server_address = (struct sockaddr_in *)calloc(1,sizeof(struct sockaddr_in));
-	if(ret->server_address == NULL) {
-		fprintf(stderr,"calloc failure\n");
+	struct addrinfo* res;
+	if(getaddrinfo(hostname,port,NULL,&res)!=0) {
+		fprintf(stderr,"Failure to getaddrinfo for hostname \"%s\"\n",hostname);
 		return NULL;
 	}
-	ret->server_address->sin_family = AF_INET;
-	memcpy((void*)&(ret->server_address->sin_addr.s_addr), (void*)(server->h_addr), server->h_length);
-	ret->server_address->sin_port = htons(port);
+	memcpy(&(ret->server_address),res->ai_addr,res->ai_addrlen);
+	ret->sockaddrlen = res->ai_addrlen;
+	freeaddrinfo(res);
 
 	ret->socketfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(ret->socketfd < 0) {
@@ -48,7 +49,7 @@ VConConn* VCConnect(char* hostname, int port) {
 		free(ret);
 		return NULL;
 	}
-	if(connect(ret->socketfd, (struct sockaddr *) (ret->server_address), sizeof(struct sockaddr_in)) < 0) {
+	if(connect(ret->socketfd, &(ret->server_address), ret->sockaddrlen) < 0) {
 		fprintf(stderr,"Failure to connect\n");
 		shutdown(ret->socketfd, SHUT_RDWR);
 		free(ret);
@@ -119,7 +120,7 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 	// Debug
 	printf("%c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 	if(strncmp(header.type,"AINF",4)==0) {
-		LOADAS(VConChunkAddonInfo);
+		//LOADAS(VConChunkAddonInfo);
 	} else if(strncmp(header.type,"ADON",4)==0) {
 		LOADAS(VConChunkAddonIdentifier);
 		chunk->unknown = ntohs(chunk->unknown);
@@ -165,9 +166,9 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 		printf("%.8x %.8x %.4x %f %f %s\n",chunk->unknown,chunk->flags,chunk->padding,chunk->rangemin,chunk->rangemax,chunk->variable_name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CFGV",4)==0) {
-		LOADAS(VConChunkCfg);
+		//LOADAS(VConChunkCfg);
 	} else if(strncmp(header.type,"PPCR",4)==0) {
-		LOADAS(VConChunkPPCR);
+		//LOADAS(VConChunkPPCR);
 	} else {
 		fprintf(stderr,"Unknown chunk type: %c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 		free(*outputbuf);
@@ -195,7 +196,6 @@ void VCDestroy(VConConn* conn) {
 	fclose(conn->dumpfile);
 #endif
 	shutdown(conn->socketfd, SHUT_RDWR);
-	free(conn->server_address);
 	free(conn);
 	return;
 }
