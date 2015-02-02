@@ -13,7 +13,7 @@ int main() {
 		return 1;
 	}
 	sleep(1);
-	parsedchunk* pc;
+	parsedchunk* pc = NULL;
 	while(VCReadChunk(vc,(char**)&pc)>0) {
 		free(pc);
 	}

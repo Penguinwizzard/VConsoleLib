@@ -1,11 +1,12 @@
-CFLAGS= -c -std=c99 -Wall
+CFLAGS= -c -std=c99 -Wall -g
+LFLAGS= -g
 CC=gcc
 
 all: test dump
 dump: dump.c
-	$(CC) dump.c -o dump
+	$(CC) $(LFLAGS) dump.c -o dump
 test: VConsoleLib.o test.o
-	$(CC) VConsoleLib.o test.o -o test
+	$(CC) $(LFLAGS) VConsoleLib.o test.o -o test
 VConsoleLib.o: VConsoleLib.h VConsoleLib.c
 	$(CC) VConsoleLib.c $(CFLAGS)
 test.o: VConsoleLib.h test.c

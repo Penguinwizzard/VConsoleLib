@@ -25,11 +25,6 @@ typedef struct {
 #endif
 } VConConn;
 
-typedef struct {
-	VConConn header;
-	uint8_t body[0];
-} parsedchunk;
-
 // Generic chunk
 #ifdef WIN32
 #pragma pack(1)
@@ -42,6 +37,11 @@ typedef struct __attribute__((__packed__)) {
 	uint16_t length; // includes header length
 	uint16_t pipe_handle; // always 0x0000?
 } VConChunk;
+
+typedef struct {
+	VConChunk header;
+	uint8_t body[0];
+} parsedchunk;
 
 #ifdef WIN32
 #pragma pack(1)

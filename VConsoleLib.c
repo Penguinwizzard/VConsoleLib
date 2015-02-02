@@ -80,15 +80,14 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 		fprintf(stderr,"Warning: outputbuf is null!\n");
 		return -1;
 	}
+	*outputbuf = NULL;
 	if(conn == NULL) {
 		fprintf(stderr,"Warning: Tried to read from non-existant VConsole Connection!\n");
-		*outputbuf = NULL;
 		return -1;
 	}
 	VConChunk header;
 	int n = dread(conn, &header, sizeof(header));
 	if(n < (int)sizeof(VConChunk)) {
-		*outputbuf = NULL;
 		if(errno == EAGAIN || errno == EWOULDBLOCK) {
 			return 0;
 		}
@@ -105,7 +104,7 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 		return -1;
 	}
 	// Read in the incoming chunk
-	int p = dread(conn, &(((parsedchunk*)*outputbuf)->body), header.length - 12);
+	int p = dread(conn, &(((parsedchunk*)(*outputbuf))->body), header.length - 12);
 	if(p < header.length - 12) {
 		free(*outputbuf);
 		*outputbuf = NULL;
@@ -116,7 +115,7 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 		return -1;
 	}
 	// If we managed to read in the incoming chunk, copy the header
-	memcpy(&(((parsedchunk*)*outputbuf)->header),&header,sizeof(VConChunk));
+	memcpy(&(((parsedchunk*)(*outputbuf))->header),&header,sizeof(VConChunk));
 	// Debug
 	printf("%c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 	if(strncmp(header.type,"AINF",4)==0) {
