@@ -179,7 +179,8 @@ typedef struct {
 #else
 typedef struct __attribute__((__packed__)) {
 #endif
-	uint8_t unknown[129];
+	char variable[64];
+	char value[65]; // yes, they're different, ask valve, not me
 } VConChunkCfg;
 
 #ifdef WIN32

@@ -117,14 +117,14 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 	// If we managed to read in the incoming chunk, copy the header
 	memcpy(&(((parsedchunk*)(*outputbuf))->header),&header,sizeof(VConChunk));
 	// Debug
-	printf("%c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 	if(strncmp(header.type,"AINF",4)==0) {
-		//LOADAS(VConChunkAddonInfo);
+		LOADAS(VConChunkAddonInfo);
+		printf("AINF\n");
 	} else if(strncmp(header.type,"ADON",4)==0) {
 		LOADAS(VConChunkAddonIdentifier);
 		chunk->unknown = ntohs(chunk->unknown);
 		chunk->namelen = ntohs(chunk->namelen);
-		printf("%hi %hi\n",sizeof(VConChunkAddonIdentifier),chunk->namelen);
+		printf("%hi %hi\n",chunk->unknown,chunk->namelen);
 		printf("%.*s\n",chunk->namelen,chunk->name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CHAN",4)==0) {
@@ -165,9 +165,14 @@ int VCReadChunk(VConConn* conn, char** outputbuf) {
 		printf("%.8x %.8x %.4x %f %f %s\n",chunk->unknown,chunk->flags,chunk->padding,chunk->rangemin,chunk->rangemax,chunk->variable_name);
 		fflush(stdout);
 	} else if(strncmp(header.type,"CFGV",4)==0) {
-		//LOADAS(VConChunkCfg);
+		LOADAS(VConChunkCfg);
+		printf("VCFG: %s : %s\n",chunk->variable,chunk->value);
 	} else if(strncmp(header.type,"PPCR",4)==0) {
-		//LOADAS(VConChunkPPCR);
+		LOADAS(VConChunkPPCR);
+		printf("PPCR\n");
+	} else if(strncmp(header.type,"CMND",4)==0) {
+		LOADAS(char);
+		printf("CMND recieved with this command: %s", chunk);
 	} else {
 		fprintf(stderr,"Unknown chunk type: %c%c%c%c\n",header.type[0],header.type[1],header.type[2],header.type[3]);
 		free(*outputbuf);
